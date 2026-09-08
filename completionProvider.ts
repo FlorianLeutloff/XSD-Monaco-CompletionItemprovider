@@ -1,3 +1,5 @@
+
+
 function getLastOpenedTag(text) {
 	// get all tags inside of the content
 	var tags = text.match(/<\/*(?=\S*)([a-zA-Z-]+)/g);
