@@ -1,0 +1,22 @@
+{
+  "name": "xsd-monaco-completionitemprovider",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FlorianLeutloff/XSD-Monaco-CompletionItemprovider.git"
+  },
+  "keywords": [],
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/FlorianLeutloff/XSD-Monaco-CompletionItemprovider/issues"
+  },
+  "homepage": "https://github.com/FlorianLeutloff/XSD-Monaco-CompletionItemprovider#readme",
+  "devDependencies": {
+    "typescript": "^7.0.2"
+  }
+}
