@@ -279,6 +279,7 @@ function getXmlCompletionProvider(monaco) {
 						}
 						else {
 							console.log("CPI 7.3.2.4")
+							console.log(lastChild)
 							// if we are looking for child elements, then used items
 							// should be the elements that were already used
 							var children = lastChild.children;
@@ -289,6 +290,7 @@ function getXmlCompletionProvider(monaco) {
 							}
 						}
 						console.log("CPI 7.3.3")
+						console.log(usedItems);
 						break;
 					}
 					// we haven't found the last opened tag yet, so we move to
@@ -301,11 +303,14 @@ function getXmlCompletionProvider(monaco) {
 			var currentItem = schemaNode;
 			console.log("CPI 7.5")
 			for (var i = 0; i < openedTags.length; i++) {
-				console.log("CPI 7.6")
+				console.log("CPI 7.6 - OpenedTags and CurrentItem")
+				console.log(openedTags[i])
+				console.log(currentItem)
 				if (currentItem) {
 					console.log("CPI 7.7")
 					currentItem = findElements(currentItem.children, openedTags[i]);
-					console.log("CPI 7.8")
+					console.log("CPI 7.8 - currentItem Result")
+					console.log(currentItem)
 				}
 			}
 
@@ -317,7 +322,8 @@ function getXmlCompletionProvider(monaco) {
 				return currentItem ? getAvailableAttribute(monaco, currentItem.children, usedItems) : [];
 			}
 			else {
-				console.log("CPI 7.10")
+				console.log("CPI 7.10 currentItem")
+				console.log(currentItem)
 				// get elements completions
 				return currentItem ? getAvailableElements(monaco, currentItem.children, usedItems) : [];
 			}
