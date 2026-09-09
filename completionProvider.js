@@ -64,13 +64,17 @@ function getAreaInfo(text) {
 function shouldSkipLevel(tagName) {
 	// if we look at the XSD schema, these nodes are containers for elements,
 	// so we can skip that level
-	return tagName === 'complexType' || tagName === 'all' || tagName === 'sequence';
+	return tagName === 'COMPLEXTYPE' || tagName === 'ALL' || tagName === 'SEQUENCE';
 }
 
 function findElements(elements, elementName) {
+	console.log("FindElements")
+	console.log(elements)
+	console.log(elementName)
 	for (var i = 0; i < elements.length; i++) {
 		// we are looking for elements, so we don't need to process annotations and attributes
-		if (elements[i].tagName !== 'annotation' && elements[i].tagName !== 'attribute') {
+		console.log(elements[i])
+		if (elements[i].tagName !== 'ANNOTATION' && elements[i].tagName !== 'ATTRIBUTE') {
 			// if it is one of the nodes that do not have the info we need, skip it
 			// and process that node's child items
 			if (shouldSkipLevel(elements[i].tagName)) {
@@ -87,7 +91,7 @@ function findElements(elements, elementName) {
 			}
 			// find all the element attributes, and if is't name is the same
 			// as the element we're looking for, return the element.
-			else if (getElementAttributes(elements[i]).name === elementName) {
+			else if (getElementAttributes(elements[i]).name.toUpperCase() === elementName) {
 				return elements[i];
 			}
 		}
@@ -119,6 +123,8 @@ function getElementAttributes(element) {
 		attrs[element.attributes[i].name] = element.attributes[i].value;
 	}
 	// return all attributes as an object
+	console.log("getElementAttributes")
+	console.log(attrs)
 	return attrs;
 }
 
