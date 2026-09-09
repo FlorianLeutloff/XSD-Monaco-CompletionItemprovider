@@ -114,4 +114,4 @@ function stringToXml(text, airgap=false) {
 	return xmlDoc;
 }
 
-var schemaNode = stringToXml(xmlSchemaString).childNodes[0];
+var schemaNode = stringToXml(xmlSchemaString).children[0];
