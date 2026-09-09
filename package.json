@@ -16,5 +16,8 @@
     "url": "https://github.com/FlorianLeutloff/XSD-Monaco-CompletionItemprovider/issues"
   },
   "homepage": "https://github.com/FlorianLeutloff/XSD-Monaco-CompletionItemprovider#readme",
-  "devDependencies": {}
+  "dependencies": {
+    "express": "^5.2.1",
+    "monaco-editor": "^0.56.0"
+  }
 }
