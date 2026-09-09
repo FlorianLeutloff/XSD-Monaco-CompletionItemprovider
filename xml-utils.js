@@ -80,7 +80,7 @@ var xmlSchemaString =
 </xs:element>
 </xs:schema>`.replace(/xs\:/g, ''); // remove 'xs:' prefix for easier navigation later
 
-function stringToXml(text) {
+function stringToXml(text, airgap=false) {
   console.log("StringToXML")
 	var xmlDoc;
 	if (window.DOMParser) {
@@ -92,7 +92,13 @@ function stringToXml(text) {
 		xmlDoc = parser.parseFromString(text, 'text/html');
     try {
       //Due to text/html coming with additional bells and whistles, this extracts the content wanted from the xml, which is wrapped in an html->body shell
-      xmlDoc = xmlDoc.getElementsByTagName("body")[0].children[0];
+      xmlDoc = xmlDoc.getElementsByTagName("body");
+      //the starting element of an xml-schema will not be considered, for xsds, you have schema as your airgap, for xml you keep body as the airgap
+      if(airgap) {
+        xmlDoc = xmlDoc[0]
+      } else {
+        xmlDoc = xmlDoc[0].children[0];
+      }
     } catch (error) {
       console.error("Could not retrieve the body properly or the body is lacking children.")
     }

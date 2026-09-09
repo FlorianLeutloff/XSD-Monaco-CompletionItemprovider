@@ -25,7 +25,8 @@ function getLastOpenedTag(text) {
 					// a child element or an attribute
 					text = text.substring(tagPosition);
 					return {
-						tagName: tag,
+						//internal tagnames are kept as UpperCase for Firefox so it is easier to make the adjustment at this position
+						tagName: tag.toUpperCase(),
 						isAttributeSearch: text.indexOf('<') > text.indexOf('>')
 					};
 				}
@@ -225,68 +226,98 @@ function getXmlCompletionProvider(monaco) {
 	return {
 		triggerCharacters: ['<'],
 		provideCompletionItems: function(model, position) {
+			console.log("CPI 1")
             // get editor content before the pointer
 			var textUntilPosition = model.getValueInRange({startLineNumber: 1, startColumn: 1, endLineNumber: position.lineNumber, endColumn: position.column});
+			console.log("CPI 2")
             // get content info - are we inside of the area where we don't want suggestions, what is the content without those areas
 			var areaUntilPositionInfo = getAreaInfo(textUntilPosition); // isCompletionAvailable, clearedText
+			console.log("CPI 3")
             // if we don't want any suggestions, return empty array
 			if (!areaUntilPositionInfo.isCompletionAvailable) {
 				return [];
 			}
+			console.log("CPI 4")
             // if we want suggestions, inside of which tag are we?
 			var lastOpenedTag = getLastOpenedTag(areaUntilPositionInfo.clearedText);
+			console.log("CPI 5")
             // get opened tags to see what tag we should look for in the XSD schema
 			var openedTags = [];
             // get the elements/attributes that are already mentioned in the element we're in
 			var usedItems = [];
 			var isAttributeSearch = lastOpenedTag && lastOpenedTag.isAttributeSearch;
+			console.log("CPI 6")
 			// no need to calculate the position in the XSD schema if we are in the root element
 			if (lastOpenedTag) {
+				console.log("CPI 7 - LastOpenedTag")
+				console.log(lastOpenedTag)
 				// parse the content (not cleared text) into an xml document
-				var xmlDoc = stringToXml(textUntilPosition);
+				var xmlDoc = stringToXml(textUntilPosition,true);
+				console.log("CPI 7.1")
 				var lastChild = xmlDoc.lastElementChild;
+				console.log("CPI 7.2")
 				while (lastChild) {
+					console.log("CPI 7.3 - LastChild")
+					console.log(lastChild);
 					openedTags.push(lastChild.tagName);
+					console.log("CPI 7.3.1")
 					// if we found our last opened tag
+					console.log(lastChild.tagName)
+					console.log(lastOpenedTag.tagName)
 					if (lastChild.tagName === lastOpenedTag.tagName) {
+						console.log("CPI 7.3.2")
 						// if we are looking for attributes, then used items should
 						// be the attributes we already used
 						if (lastOpenedTag.isAttributeSearch) {
+							console.log("CPI 7.3.2.3")
 							var attrs = lastChild.attributes;
+							console.log("CPI 7.3.2.3.1")
 							for (var i = 0; i< attrs.length; i++) {
+								console.log("CPI 7.3.2.3.2")
 								usedItems.push(attrs[i].nodeName);
 							}
 						}
 						else {
+							console.log("CPI 7.3.2.4")
 							// if we are looking for child elements, then used items
 							// should be the elements that were already used
 							var children = lastChild.children;
+							console.log("CPI 7.3.2.4.1")
 							for (var i = 0; i < children.length; i++) {
+								console.log("CPI 7.3.2.4.2")
 								usedItems.push(children[i].tagName);
 							}
 						}
+						console.log("CPI 7.3.3")
 						break;
 					}
 					// we haven't found the last opened tag yet, so we move to
 					// the next element
 					lastChild = lastChild.lastElementChild;
+					console.log("CPI 7.4")
 				}
 			}
             // find the last opened tag in the schema to see what elements/attributes it can have
 			var currentItem = schemaNode;
+			console.log("CPI 7.5")
 			for (var i = 0; i < openedTags.length; i++) {
+				console.log("CPI 7.6")
 				if (currentItem) {
+					console.log("CPI 7.7")
 					currentItem = findElements(currentItem.children, openedTags[i]);
+					console.log("CPI 7.8")
 				}
 			}
 
             // return available elements/attributes if the tag exists in the schema, or an empty
             // array if it doesn't
 			if (isAttributeSearch) {
+				console.log("CPI 7.9")
 				// get attributes completions
 				return currentItem ? getAvailableAttribute(monaco, currentItem.children, usedItems) : [];
 			}
 			else {
+				console.log("CPI 7.10")
 				// get elements completions
 				return currentItem ? getAvailableElements(monaco, currentItem.children, usedItems) : [];
 			}
