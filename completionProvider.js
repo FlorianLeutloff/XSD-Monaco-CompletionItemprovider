@@ -68,6 +68,9 @@ function shouldSkipLevel(tagName) {
 }
 
 function findElements(elements, elementName) {
+	if(elementName) {
+		elementName = elementName.toUpperCase();
+	}
 	console.log("FindElements")
 	console.log(elements)
 	console.log(elementName)
@@ -78,24 +81,37 @@ function findElements(elements, elementName) {
 			// if it is one of the nodes that do not have the info we need, skip it
 			// and process that node's child items
 			if (shouldSkipLevel(elements[i].tagName)) {
+				console.log("Skipping Level");
 				var child = findElements(elements[i].children, elementName);
+				console.log("Skipping Level Child Result");
+				console.log(child);
 				// if child exists, return it
 				if (child) {
+					console.log("findElements Return 1");
 					return child;
 				}
 			}
 			// if there is no elementName, return all elements (we'll explain
 			// this bit little later
 			else if (!elementName) {
+				console.log("findElements Return 2");
 				return elements;
 			}
-			// find all the element attributes, and if is't name is the same
+			// find all the element attributes, and if it't name is the same
 			// as the element we're looking for, return the element.
-			else if (getElementAttributes(elements[i]).name.toUpperCase() === elementName) {
-				return elements[i];
-			}
+			else {
+				const elementAttributes = getElementAttributes(elements[i]);
+				console.log("Element ATtributes:")
+				console.log(elementAttributes);
+				console.log(elementName);
+				if(elementAttributes.name.toUpperCase() === elementName) {
+					console.log("findElements Return 3");
+					return elements[i];
+				}
+			} 
 		}
 	}
+	console.log("findElements Method End returning undefined");
 }
 
 function findAttributes(elements) {
@@ -123,8 +139,8 @@ function getElementAttributes(element) {
 		attrs[element.attributes[i].name] = element.attributes[i].value;
 	}
 	// return all attributes as an object
-	console.log("getElementAttributes")
-	console.log(attrs)
+	//console.log("getElementAttributes")
+	//console.log(attrs)
 	return attrs;
 }
 
@@ -132,7 +148,7 @@ function getItemDocumentation(element) {
 	for (var i = 0; i < element.children.length; i++) {
 		// annotaion contains documentation, so calculate the
 		// documentation from it's child elements
-		if (element.children[i].tagName === 'annotation') {
+		if (element.children[i].tagName === 'ANNOTATION') {
 			return getItemDocumentation(element.children[0]);
 		}
 		// if it's the documentation element, just get the value
@@ -143,10 +159,12 @@ function getItemDocumentation(element) {
 }
 
 function isItemAvailable(itemName, maxOccurs, items) {
+	console.log("isItemAvailable")
 	// the default for 'maxOccurs' is 1
 	maxOccurs = maxOccurs || '1';
 	// the element can appere infinite times, so it is availabel
 	if (maxOccurs && maxOccurs === 'unbounded') {
+		console.log("ITA R1")
 		return true;
 	}
 	// count how many times the element appered
@@ -158,16 +176,20 @@ function isItemAvailable(itemName, maxOccurs, items) {
 	}
 	// if it didn't appear yet, or it can appear again, then it
 	// is available, otherwise it't not
+	console.log("ITA R2")
 	return count === 0 || parseInt(maxOccurs) > count;
 }
 
 function getAvailableElements(monaco, elements, usedItems) {
+	console.log("GetAvailableElements: Elements - usedItems ")
+	console.log(elements)
+	console.log(usedItems)
 	var availableItems = [];
 	var children;
 	for (var i = 0; i < elements.length; i++) {
 		// annotation element only contains documentation,
 		// so no need to process it here
-		if (elements[i].tagName !== 'annotation') {
+		if (elements[i].tagName !== 'ANNOTATION') {
 			// get all child elements that have 'element' tag
 			children = findElements([elements[i]])
 		}
@@ -176,11 +198,15 @@ function getAvailableElements(monaco, elements, usedItems) {
 	if (!children) {
 		return [];
 	}
+	console.log("ForLoop")
 	for (var i = 0; i < children.length; i++) {
+		console.log(i);
+		console.log(children[i]);
 		// get all element attributes
 		let elementAttrs = getElementAttributes(children[i]);
+		console.log(elementAttrs);
 		// the element is a suggestion if it's available
-		if (isItemAvailable(elementAttrs.name, elementAttrs.maxOccurs, usedItems)) {
+		if (isItemAvailable(elementAttrs.name, elementAttrs.maxoccurs, usedItems)) {
 			// mark it as a 'field', and get the documentation
 			availableItems.push({
 				label: elementAttrs.name,
@@ -188,6 +214,7 @@ function getAvailableElements(monaco, elements, usedItems) {
 				detail: elementAttrs.type,
 				documentation: getItemDocumentation(children[i])
 			});
+			console.log("Push Succesful")
 		}
 	}
 	// return the suggestions we found
@@ -200,7 +227,7 @@ function getAvailableAttribute(monaco, elements, usedChildTags) {
 	for (var i = 0; i < elements.length; i++) {
 		// annotation element only contains documentation,
 		// so no need to process it here
-		if (elements[i].tagName !== 'annotation') {
+		if (elements[i].tagName !== 'ANNOTATION') {
 			// get all child elements that have 'attribute' tag
 			children = findAttributes([elements[i]])
 		}
@@ -331,7 +358,11 @@ function getXmlCompletionProvider(monaco) {
 				console.log("CPI 7.10 currentItem")
 				console.log(currentItem)
 				// get elements completions
-				return currentItem ? getAvailableElements(monaco, currentItem.children, usedItems) : [];
+				const result = currentItem ? getAvailableElements(monaco, currentItem.children, usedItems) : [];
+				console.log("RESULT:")
+				console.log(result);
+				return { suggestions: result };
+				//return currentItem ? getAvailableElements(monaco, currentItem.children, usedItems) : [];
 			}
 		}
 	}

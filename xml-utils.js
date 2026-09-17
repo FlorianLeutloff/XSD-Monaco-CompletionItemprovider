@@ -79,6 +79,7 @@ var xmlSchemaString =
   </xs:complexType>
 </xs:element>
 </xs:schema>`.replace(/xs\:/g, ''); // remove 'xs:' prefix for easier navigation later
+//WIP: the prefix needs to be kept later on. It is important.
 
 function stringToXml(text, airgap=false) {
   console.log("StringToXML")
@@ -114,4 +115,4 @@ function stringToXml(text, airgap=false) {
 	return xmlDoc;
 }
 
-var schemaNode = stringToXml(xmlSchemaString).children[0];
+var schemaNode = stringToXml(xmlSchemaString,true).children[0];
