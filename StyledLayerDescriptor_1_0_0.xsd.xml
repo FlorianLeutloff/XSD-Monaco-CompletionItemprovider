@@ -1,5 +1,4 @@
-var xmlSchemaString =
-`<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema targetNamespace="http://www.opengis.net/sld" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ogc="http://www.opengis.net/ogc" xmlns:sld="http://www.opengis.net/sld" elementFormDefault="qualified" version="1.0.0.2">
 	
 	<xsd:import namespace="http://www.w3.org/1999/xlink" schemaLocation="http://www.w3.org/1999/xlink.xsd"/>
@@ -805,41 +804,3 @@ var xmlSchemaString =
 		</xsd:complexType>
 	</xsd:element>
 </xsd:schema>
-`.replace(/xsd\:/g, ''); // remove 'xs:' prefix for easier navigation later
-//WIP: the prefix needs to be kept later on. It is important.
-
-function stringToXml(text, airgap=false) {
-  console.log("StringToXML")
-	var xmlDoc;
-	if (window.DOMParser) {
-    console.log("DOMPARSER")
-		var parser = new DOMParser();
-    //originally text/xml
-    //firefox handles domParser errors differently than other browsers, depending on the mimetype, by setting it to text/html it has behaviour similar to chrome
-    //thereby that it parses the markup-language as far as able instead of just erroring out uselessly.
-		xmlDoc = parser.parseFromString(text, 'text/html');
-    try {
-      //Due to text/html coming with additional bells and whistles, this extracts the content wanted from the xml, which is wrapped in an html->body shell
-      xmlDoc = xmlDoc.getElementsByTagName("body");
-      //the starting element of an xml-schema will not be considered, for xsds, you have schema as your airgap, for xml you keep body as the airgap
-      if(airgap) {
-        xmlDoc = xmlDoc[0]
-      } else {
-        xmlDoc = xmlDoc[0].children[0];
-      }
-    } catch (error) {
-      console.error("Could not retrieve the body properly or the body is lacking children.")
-    }
-
-	}
-	else {
-    console.log("ACITVEXOBJECT")
-		xmlDoc = new ActiveXObject('Microsoft.XMLDOM');
-		xmlDoc.async = false;
-		xmlDoc.loadXML(text);
-	}
-  console.log(xmlDoc)
-	return xmlDoc;
-}
-
-var schemaNode = stringToXml(xmlSchemaString,true).children[0];
