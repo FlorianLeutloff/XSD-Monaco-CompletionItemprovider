@@ -64,7 +64,41 @@ function getAreaInfo(text) {
 function shouldSkipLevel(tagName) {
 	// if we look at the XSD schema, these nodes are containers for elements,
 	// so we can skip that level
-	return tagName === 'COMPLEXTYPE' || tagName === 'ALL' || tagName === 'SEQUENCE';
+	return tagName === 'COMPLEXTYPE' || tagName === 'ALL' || tagName === 'SEQUENCE' || tagName === 'CHOICE';
+}
+
+/*
+	This will require later expansion due to a later requirement to support multiple XSD-Schema files instead of just one.
+	xmlDoc will turn into a dictionary
+
+*/
+function findReference(element, xmlDoc) {
+	console.log("findReference:");
+	console.log(element);
+	const attributes = Object.keys(element.attributes);
+	let elementName = "";
+	let namespace = "";
+	if(attributes.includes("ref")) {
+		[namespace, elementName] = element.attributes.ref.split(":")
+		
+	}
+	if(attributes.includes("type") && !attributes.includes("name")) {
+		[namespace, elementName] = element.attributes.type.split(":")
+	}
+	console.log(namespace);
+	console.log(elementName);
+	if(elementName) {
+		const result = xmlDoc.querySelector(`[name="${elementName}"]`)
+		console.log(result);
+		if(result) {
+			console.log("returning found reference")
+			return result;
+		}
+	}
+	console.log("returning Original Element")
+	return element
+	
+
 }
 
 function findElements(elements, elementName) {
@@ -80,6 +114,7 @@ function findElements(elements, elementName) {
 		if (elements[i].tagName !== 'ANNOTATION' && elements[i].tagName !== 'ATTRIBUTE') {
 			// if it is one of the nodes that do not have the info we need, skip it
 			// and process that node's child items
+			elements[i] = findReference(elements[i],schemaNode)
 			if (shouldSkipLevel(elements[i].tagName)) {
 				console.log("Skipping Level");
 				var child = findElements(elements[i].children, elementName);
