@@ -825,15 +825,11 @@ function getElementName(text) {
 function convertClosingSyntax(text) {
 	if(text.includes("/>")) {
 		const singleLineElementArray = [...text.matchAll(/\<([^/!].+\/\>)/g)]
-		console.log(singleLineElementArray);
 
 		for(const entry of singleLineElementArray) {
 			const elementString = entry[0];
-			console.log(elementString);
 			const elementName = getElementName(elementString);
-			console.log(elementName);
 			const newElementString = elementString.replace("/>",`></${elementName}>`)
-			console.log(newElementString);
 			text = text.replace(elementString,newElementString);
 		}
 	}
