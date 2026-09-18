@@ -808,7 +808,40 @@ var xmlSchemaString =
 `.replace(/xsd\:/g, ''); // remove 'xs:' prefix for easier navigation later
 //WIP: the prefix needs to be kept later on. It is important.
 
+
+function getElementName(text) {
+	const whitespaceIndex = text.indexOf(" ");
+	const arrowIndex = text.indexOf(">");
+	if(whitespaceIndex !== -1) {
+		if(whitespaceIndex < arrowIndex) {
+			return text.slice(1,whitespaceIndex);
+		}
+	}
+	return text.slice(1,arrowIndex);
+
+
+}
+
+function convertClosingSyntax(text) {
+	if(text.includes("/>")) {
+		const singleLineElementArray = [...text.matchAll(/\<([^/!].+\/\>)/g)]
+		console.log(singleLineElementArray);
+
+		for(const entry of singleLineElementArray) {
+			const elementString = entry[0];
+			console.log(elementString);
+			const elementName = getElementName(elementString);
+			console.log(elementName);
+			const newElementString = elementString.replace("/>",`></${elementName}>`)
+			console.log(newElementString);
+			text = text.replace(elementString,newElementString);
+		}
+	}
+	return text;
+}
+
 function stringToXml(text, airgap=false) {
+	text = convertClosingSyntax(text);
   console.log("StringToXML")
 	var xmlDoc;
 	if (window.DOMParser) {
