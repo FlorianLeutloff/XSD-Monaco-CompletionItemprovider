@@ -151,13 +151,13 @@ function findElements(elements, elementName) {
 		if (elements[i].tagName !== 'ANNOTATION' && elements[i].tagName !== 'ATTRIBUTE') {
 			// if it is one of the nodes that do not have the info we need, skip it
 			// and process that node's child items
-			elements[i] = findReference(elements[i],schemaNode)
+			let currentElement = findReference(elements[i],schemaNode)
+			//elements[i] = findReference(elements[i],schemaNode)
 			console.log("After FindReference");
-			console.log(elements[i]);
-			console.log(elements);
-			if (shouldSkipLevel(elements[i].tagName)) {
+			console.log(currentElement);
+			if (shouldSkipLevel(currentElement.tagName)) {
 				console.log("Skipping Level");
-				var child = findElements(elements[i].children, elementName);
+				var child = findElements(currentElement.children, elementName);
 				console.log("Skipping Level Child Result");
 				console.log(child);
 				// if child exists, return it
@@ -178,13 +178,13 @@ function findElements(elements, elementName) {
 			// find all the element attributes, and if it't name is the same
 			// as the element we're looking for, return the element.
 			else {
-				const elementAttributes = getElementAttributes(elements[i]);
+				const elementAttributes = getElementAttributes(currentElement);
 				console.log("Element ATtributes:")
 				console.log(elementAttributes);
 				console.log(elementName);
 				if(elementAttributes.name.toUpperCase() === elementName) {
 					console.log("findElements Return 3");
-					return elements[i];
+					return currentElement;
 				}
 			} 
 		}
