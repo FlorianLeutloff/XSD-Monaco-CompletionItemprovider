@@ -75,15 +75,34 @@ function shouldSkipLevel(tagName) {
 function findReference(element, xmlDoc) {
 	console.log("findReference:");
 	console.log(element);
-	const attributes = Object.keys(element.attributes);
+	const attributeNames = element.getAttributeNames();
+	console.log(attributeNames);
 	let elementName = "";
 	let namespace = "";
-	if(attributes.includes("ref")) {
-		[namespace, elementName] = element.attributes.ref.split(":")
+	if(attributeNames.includes("ref")) {
+		console.log("INCLUDES REF")
+		const attributeSplit = element.getAttribute("ref").split(":");
+		console.log(attributeSplit);
+		if(attributeSplit.length > 1) {
+			namespace = attributeSplit[0];
+			elementName = attributeSplit[1]
+		} else {
+			console.warn(`Reference Name Split is too small, no value assigmnment`)
+		}
+		//[namespace, elementName] = element.attributes.ref.split(":")
 		
 	}
-	if(attributes.includes("type") && !attributes.includes("name")) {
-		[namespace, elementName] = element.attributes.type.split(":")
+	if(attributeNames.includes("type") && !attributeNames.includes("name")) {
+		console.log("INCLUDES TYPE")
+		const attributeSplit = element.getAttribute("type").split(":");
+		console.log(attributeSplit);
+		if(attributeSplit.length > 1) {
+			namespace = attributeSplit[0];
+			elementName = attributeSplit[1]
+		} else {
+			console.warn(`Reference Name Split is too small, no value assigmnment`)
+		}
+		//[namespace, elementName] = element.attributes.type.split(":")
 	}
 	console.log(namespace);
 	console.log(elementName);
@@ -101,6 +120,24 @@ function findReference(element, xmlDoc) {
 
 }
 
+function resolveReferenceList(elements,xmlDoc) {
+	const elementsArray = [...elements]
+	const resultList = []
+	for(let i = 0; i < elementsArray.length; i++) {
+		if(shouldSkipLevel(elementsArray[i].tagName)) {
+			const subElements = findElements(elementsArray[i].children)
+			for(sbe of subElements) {
+				elementsArray.push(sbe);
+			}
+			continue;
+		}
+		const element = findReference(elementsArray[i],xmlDoc);
+		resultList.push(element);
+	}
+	return resultList;
+
+}
+
 function findElements(elements, elementName) {
 	if(elementName) {
 		elementName = elementName.toUpperCase();
@@ -115,6 +152,9 @@ function findElements(elements, elementName) {
 			// if it is one of the nodes that do not have the info we need, skip it
 			// and process that node's child items
 			elements[i] = findReference(elements[i],schemaNode)
+			console.log("After FindReference");
+			console.log(elements[i]);
+			console.log(elements);
 			if (shouldSkipLevel(elements[i].tagName)) {
 				console.log("Skipping Level");
 				var child = findElements(elements[i].children, elementName);
@@ -130,7 +170,10 @@ function findElements(elements, elementName) {
 			// this bit little later
 			else if (!elementName) {
 				console.log("findElements Return 2");
-				return elements;
+				const deferencedElements = resolveReferenceList(elements,schemaNode);
+				console.log("DeReferencedElements:")
+				console.log(deferencedElements);
+				return deferencedElements;
 			}
 			// find all the element attributes, and if it't name is the same
 			// as the element we're looking for, return the element.
