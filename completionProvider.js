@@ -124,7 +124,11 @@ function findElementSubstitutes(element) {
 	if(element.getAttributeNames().includes("block") && element.getAttribute("block")==="substitution") {
 		return []
 	}
-	const
+	const namespace = getNamespaceOfElement(element);
+	const elementName = element.getAttribute("name");
+	const elementReference = `${namespace}:${elementName}`
+	const searchResults = schemaNode.querySelectorAll(`[substitutionGroup="${elementReference}"`);
+	return searchResults;
 	
 }
 
@@ -138,6 +142,10 @@ function resolveReferenceList(elements,xmlDoc) {
 				elementsArray.push(sbe);
 			}
 			continue;
+		}
+		const substitutesArray = findElementSubstitutes(elementsArray[i]);
+		for(let y = 0; y < substitutesArray.length; y++) {
+			elementsArray.push(substitutesArray[y]);
 		}
 		const element = findReference(elementsArray[i],xmlDoc);
 		resultList.push(element);
