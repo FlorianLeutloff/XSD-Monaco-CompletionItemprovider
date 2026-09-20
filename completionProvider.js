@@ -89,9 +89,9 @@ function findReference(element, xmlDoc) {
 	console.log(elementName);
 	if(elementName) {
 		const result = xmlDoc.querySelector(`[name="${elementName}"]`)
-		console.log(result);
 		if(result) {
 			console.log("returning found reference")
+			console.log(result);
 			return result;
 		}
 	}
@@ -247,7 +247,8 @@ function getAvailableElements(monaco, elements, usedItems) {
 				label: elementAttrs.name,
 				kind: monaco.languages.CompletionItemKind.Field,
 				detail: elementAttrs.type,
-				documentation: getItemDocumentation(children[i])
+				documentation: getItemDocumentation(children[i]),
+				insertText: elementAttrs.name
 			});
 			console.log("Push Succesful")
 		}
