@@ -99,8 +99,33 @@ function findReference(element, xmlDoc) {
 	}
 	console.log("returning Original Element")
 	return element
-	
+}
 
+function getNamespaceOfElement(element) {
+	if(element.tagName === "SCHEMA") {
+		const attributes = element.getAttributeNames();
+		if(attributes.includes('targetNamespace')) {
+			const targetNamespace = element.getAttribute("targetNamespace");
+			if(targetNamespace.includes("/")) {
+				const nameSpaceSplit = targetNamespace.split("/");
+				return nameSpaceSplit[nameSpaceSplit.length -1];
+			} else {
+				return targetNamespace;
+			}
+		} else {
+			return "";
+		}
+	} else {
+		return getNamespaceOfElement(element.parentNode)
+	}
+}
+
+function findElementSubstitutes(element) {
+	if(element.getAttributeNames().includes("block") && element.getAttribute("block")==="substitution") {
+		return []
+	}
+	const
+	
 }
 
 function resolveReferenceList(elements,xmlDoc) {
