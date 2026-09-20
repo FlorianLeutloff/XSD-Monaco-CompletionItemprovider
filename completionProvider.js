@@ -248,7 +248,8 @@ function getAvailableElements(monaco, elements, usedItems) {
 				kind: monaco.languages.CompletionItemKind.Field,
 				detail: elementAttrs.type,
 				documentation: getItemDocumentation(children[i]),
-				insertText: elementAttrs.name
+				insertText: `${elementAttrs.name}>\n\t$0\n</${elementAttrs.name}`,
+				insertTextRules: 4
 			});
 			console.log("Push Succesful")
 		}
