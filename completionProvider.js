@@ -79,35 +79,18 @@ function findReference(element, xmlDoc) {
 	console.log(attributeNames);
 	let elementName = "";
 	let namespace = "";
+	let referenceData = {};
 	if(attributeNames.includes("ref")) {
 		console.log("INCLUDES REF")
-		const attributeSplit = element.getAttribute("ref").split(":");
-		console.log(attributeSplit);
-		if(attributeSplit.length > 1) {
-			namespace = attributeSplit[0];
-			elementName = attributeSplit[1]
-		} else {
-			console.warn(`Reference Name Split is too small, no value assigmnment`)
-		}
-		//[namespace, elementName] = element.attributes.ref.split(":")
-		
+		referenceData = getElementReferenceData(element,"ref");
 	}
 	if(attributeNames.includes("type") && !attributeNames.includes("name")) {
 		console.log("INCLUDES TYPE")
-		const attributeSplit = element.getAttribute("type").split(":");
-		console.log(attributeSplit);
-		if(attributeSplit.length > 1) {
-			namespace = attributeSplit[0];
-			elementName = attributeSplit[1]
-		} else {
-			console.warn(`Reference Name Split is too small, no value assigmnment`)
-		}
-		//[namespace, elementName] = element.attributes.type.split(":")
+		referenceData = getElementReferenceData(element,"type");
 	}
-	console.log(namespace);
-	console.log(elementName);
-	if(elementName) {
-		const result = xmlDoc.querySelector(`[name="${elementName}"]`)
+	console.log(referenceData);
+	if(referenceData.name) {
+		const result = xmlDoc.querySelector(`[name="${referenceData.name}"]`)
 		if(result) {
 			console.log("returning found reference")
 			console.log(result);
@@ -136,6 +119,15 @@ function resolveReferenceList(elements,xmlDoc) {
 	}
 	return resultList;
 
+}
+
+function getElementReferenceData(element,key) {
+	const attributeSplit = element.getAttribute(key).split(":");
+	if(attributeSplit.length > 1) {
+		return {ns: attributeSplit[0], name: attributeSplit[1]};
+	} else {
+		return {ns: "", name: attributeSplit[0]};
+	}
 }
 
 function findElements(elements, elementName) {
