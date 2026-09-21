@@ -72,7 +72,7 @@ function shouldSkipLevel(tagName) {
 	xmlDoc will turn into a dictionary
 
 */
-function findReference(element, xmlDoc) {
+function findReference(element) {
 	console.log("findReference:");
 	console.log(element);
 	const attributeNames = element.getAttributeNames();
@@ -90,7 +90,7 @@ function findReference(element, xmlDoc) {
 	}
 	console.log(referenceData);
 	if(referenceData.name) {
-		const result = xmlDoc.querySelector(`[name="${referenceData.name}"]`)
+		const result = schemaNode.querySelector(`[name="${referenceData.name}"]`)
 		if(result) {
 			console.log("returning found reference")
 			console.log(result);
@@ -104,8 +104,8 @@ function findReference(element, xmlDoc) {
 function getNamespaceOfElement(element) {
 	if(element.tagName === "SCHEMA") {
 		const attributes = element.getAttributeNames();
-		if(attributes.includes('targetNamespace')) {
-			const targetNamespace = element.getAttribute("targetNamespace");
+		if(attributes.includes('targetnamespace')) {
+			const targetNamespace = element.getAttribute("targetnamespace");
 			if(targetNamespace.includes("/")) {
 				const nameSpaceSplit = targetNamespace.split("/");
 				return nameSpaceSplit[nameSpaceSplit.length -1];
@@ -127,15 +127,19 @@ function findElementSubstitutes(element) {
 	const namespace = getNamespaceOfElement(element);
 	const elementName = element.getAttribute("name");
 	const elementReference = `${namespace}:${elementName}`
-	const searchResults = schemaNode.querySelectorAll(`[substitutionGroup="${elementReference}"`);
+	const searchResults = schemaNode.querySelectorAll(`[substitutionGroup="${elementReference}"]`);
 	return searchResults;
 	
 }
 
-function resolveReferenceList(elements,xmlDoc) {
+function resolveReferenceList(elements) {
+	console.log("------------ RESOLVE REFERENCES ------------")
+	console.log(elements);
 	const elementsArray = [...elements]
 	const resultList = []
 	for(let i = 0; i < elementsArray.length; i++) {
+		console.log("RESOLVING:")
+		console.log(elementsArray[i])
 		if(shouldSkipLevel(elementsArray[i].tagName)) {
 			const subElements = findElements(elementsArray[i].children)
 			for(sbe of subElements) {
@@ -143,11 +147,11 @@ function resolveReferenceList(elements,xmlDoc) {
 			}
 			continue;
 		}
-		const substitutesArray = findElementSubstitutes(elementsArray[i]);
+		const element = findReference(elementsArray[i]);
+		const substitutesArray = findElementSubstitutes(element);
 		for(let y = 0; y < substitutesArray.length; y++) {
 			elementsArray.push(substitutesArray[y]);
 		}
-		const element = findReference(elementsArray[i],xmlDoc);
 		resultList.push(element);
 	}
 	return resultList;
@@ -195,7 +199,7 @@ function findElements(elements, elementName) {
 			// this bit little later
 			else if (!elementName) {
 				console.log("findElements Return 2");
-				const deferencedElements = resolveReferenceList(elements,schemaNode);
+				const deferencedElements = resolveReferenceList(elements);
 				console.log("DeReferencedElements:")
 				console.log(deferencedElements);
 				return deferencedElements;
@@ -311,14 +315,18 @@ function getAvailableElements(monaco, elements, usedItems) {
 		// the element is a suggestion if it's available
 		if (isItemAvailable(elementAttrs.name, elementAttrs.maxoccurs, usedItems)) {
 			// mark it as a 'field', and get the documentation
-			availableItems.push({
-				label: elementAttrs.name,
-				kind: monaco.languages.CompletionItemKind.Field,
-				detail: elementAttrs.type,
-				documentation: getItemDocumentation(children[i]),
-				insertText: `${elementAttrs.name}>\n\t$0\n</${elementAttrs.name}`,
-				insertTextRules: 4
-			});
+
+			//if it has a name, therefore could be resolved to a reference somewhere else
+			if(elementAttrs.name) {
+				availableItems.push({
+					label: elementAttrs.name,
+					kind: monaco.languages.CompletionItemKind.Field,
+					detail: elementAttrs.type,
+					documentation: getItemDocumentation(children[i]),
+					insertText: `${elementAttrs.name}>\n\t$0\n</${elementAttrs.name}`,
+					insertTextRules: 4
+				});
+			}
 			console.log("Push Succesful")
 		}
 	}
@@ -351,7 +359,7 @@ function getAvailableAttribute(monaco, elements, usedChildTags) {
 			availableItems.push({
 				label: attrs.name,
 				kind: monaco.languages.CompletionItemKind.Property,
-				detail: attrs.type,
+				detail: attrs.type || "string",
 				documentation: getItemDocumentation(children[i])
 			});
 		}
