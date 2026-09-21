@@ -64,7 +64,7 @@ function getAreaInfo(text) {
 function shouldSkipLevel(tagName) {
 	// if we look at the XSD schema, these nodes are containers for elements,
 	// so we can skip that level
-	return tagName === 'COMPLEXTYPE' || tagName === 'ALL' || tagName === 'SEQUENCE' || tagName === 'CHOICE';
+	return tagName === 'COMPLEXTYPE' || tagName === 'ALL' || tagName === 'SEQUENCE' || tagName === 'CHOICE' || tagName === 'COMPLEXCONTENT';
 }
 
 /*
