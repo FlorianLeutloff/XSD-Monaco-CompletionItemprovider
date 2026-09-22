@@ -76,16 +76,11 @@ function findReference(element) {
 	console.log("findReference:");
 	console.log(element);
 	const attributeNames = element.getAttributeNames();
-	console.log(attributeNames);
-	let elementName = "";
-	let namespace = "";
 	let referenceData = {};
 	if(attributeNames.includes("ref")) {
-		console.log("INCLUDES REF")
 		referenceData = getElementReferenceData(element,"ref");
 	}
 	if(attributeNames.includes("type") && !attributeNames.includes("name")) {
-		console.log("INCLUDES TYPE")
 		referenceData = getElementReferenceData(element,"type");
 	}
 	console.log(referenceData);
@@ -136,7 +131,7 @@ function findElementSubstitutesByName(fullRefName) {
 }
 
 function resolveElementSubstitutes(element) {
-	console.log("RESOLVE ELEMENT SUBSTITUTES")
+	console.log("------------ RESOLVE ELEMENT SUBSTITUTES ------------")
 	console.log(element)
 	const elementAttributes = element.getAttributeNames();
 	if(elementAttributes.includes("ref")) {
@@ -211,17 +206,14 @@ function findElements(elements, elementName) {
 			// and process that node's child items
 			let currentElement = findReference(elementArray[i],schemaNode)
 
-			
+
 			const substitutesArray = resolveElementSubstitutes(currentElement);
 			console.log(substitutesArray);
 			for(let s = 0; s < substitutesArray.length; s++) {
 				elementArray.push(substitutesArray[s])
 			}
-			//elements[i] = findReference(elements[i],schemaNode)
-			console.log("After FindReference");
-			console.log(currentElement);
+
 			if(currentElement.tagName === 'EXTENSION') {
-				console.log("EXTENSION FOUND")
 				const extensionResult = resolveExtensions(currentElement);
 				if(extensionResult) {
 					console.log(extensionResult)
@@ -235,14 +227,12 @@ function findElements(elements, elementName) {
 				console.log(child);
 				// if child exists, return it
 				if (child) {
-					console.log("findElements Return 1");
 					return child;
 				}
 			}
 			// if there is no elementName, return all elements (we'll explain
 			// this bit little later
 			else if (!elementName) {
-				console.log("findElements Return 2");
 				const deferencedElements = resolveReferenceList(elementArray);
 				console.log("DeReferencedElements:")
 				console.log(deferencedElements);
@@ -252,12 +242,8 @@ function findElements(elements, elementName) {
 			// as the element we're looking for, return the element.
 			else {
 				const elementAttributes = getElementAttributes(currentElement);
-				console.log("Element ATtributes:")
-				console.log(elementAttributes);
-				console.log(elementName);
 				try {
 					if(elementAttributes.name.toUpperCase() === elementName) {
-						console.log("findElements Return 3");
 						return currentElement;
 					}
 				} catch(exception) {
