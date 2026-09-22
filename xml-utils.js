@@ -2,8 +2,8 @@ var xmlSchemaString =
 `<?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema targetNamespace="http://www.opengis.net/sld" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ogc="http://www.opengis.net/ogc" xmlns:sld="http://www.opengis.net/sld" elementFormDefault="qualified" version="1.0.0.2">
 	
-	<!-- <xsd:import namespace="http://www.w3.org/1999/xlink" schemaLocation="http://www.w3.org/1999/xlink.xsd"/> -->
-	<!-- <xsd:import namespace="http://www.opengis.net/ogc" schemaLocation="http://schemas.opengis.net/filter/1.0.0/filter.xsd"/> -->
+	<xsd:import namespace="http://www.w3.org/1999/xlink" schemaLocation="http://www.w3.org/1999/xlink.xsd"/>
+	<xsd:import namespace="http://www.opengis.net/ogc" schemaLocation="http://schemas.opengis.net/filter/1.0.0/filter.xsd"/>
 	<!-- *********************************************************************** -->
 	<xsd:annotation>
 		<xsd:documentation>
@@ -809,6 +809,36 @@ var xmlSchemaString =
 //WIP: the prefix needs to be kept later on. It is important.
 
 
+/*
+	Method for unifying different schemas into one schema
+	include-statements already work by that principle, combining together XSD-Schemas.
+*/
+function unifySchemas() {
+
+
+}
+
+async function fetchSchemas(filename) {
+	const file = await fetch(`localhost:3000/${filename}`)
+	return await file.text();
+
+}
+
+function compileSchemaDictionary() {
+	const urlDictionary = {
+		"sld": ["StyledLayerDescriptor.xsd"],
+		"ogc": ["expr.xsd","filter.xsd","filterAll.xsd","filterCapabilities.xsd","sort.xsd"]
+	}
+
+	
+
+
+
+
+	
+}
+
+
 function getElementName(text) {
 	const whitespaceIndex = text.indexOf(" ");
 	const arrowIndex = text.indexOf(">");
@@ -838,7 +868,7 @@ function convertClosingSyntax(text) {
 
 function stringToXml(text, airgap=false) {
 	text = convertClosingSyntax(text);
-  console.log("StringToXML")
+  	console.log("StringToXML")
 	var xmlDoc;
 	if (window.DOMParser) {
     console.log("DOMPARSER")
@@ -867,7 +897,7 @@ function stringToXml(text, airgap=false) {
 		xmlDoc.async = false;
 		xmlDoc.loadXML(text);
 	}
-  console.log(xmlDoc)
+  	console.log(xmlDoc)
 	return xmlDoc;
 }
 
