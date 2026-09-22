@@ -64,7 +64,7 @@ function getAreaInfo(text) {
 function shouldSkipLevel(tagName) {
 	// if we look at the XSD schema, these nodes are containers for elements,
 	// so we can skip that level
-	return tagName === 'COMPLEXTYPE' || tagName === 'ALL' || tagName === 'SEQUENCE' || tagName === 'CHOICE' || tagName === 'COMPLEXCONTENT';
+	return tagName === 'COMPLEXTYPE' || tagName === 'ALL' || tagName === 'SEQUENCE' || tagName === 'CHOICE' || tagName === 'COMPLEXCONTENT' || tagName === 'EXTENSION';
 }
 
 /*
@@ -127,10 +127,27 @@ function findElementSubstitutes(element) {
 	const namespace = getNamespaceOfElement(element);
 	const elementName = element.getAttribute("name");
 	const elementReference = `${namespace}:${elementName}`
-	const searchResults = schemaNode.querySelectorAll(`[substitutionGroup="${elementReference}"]`);
-	return searchResults;
-	
+	return findElementSubstitutesByName(elementReference);
 }
+
+function findElementSubstitutesByName(fullRefName) {
+	const searchResults = schemaNode.querySelectorAll(`[substitutionGroup="${fullRefName}"]`);
+	return searchResults;
+}
+
+function resolveElementSubstitutes(element) {
+	console.log("RESOLVE ELEMENT SUBSTITUTES")
+	console.log(element)
+	const elementAttributes = element.getAttributeNames();
+	if(elementAttributes.includes("ref")) {
+		return findElementSubstitutesByName(element.getAttribute("ref"));
+	}
+	if(elementAttributes.includes("name")) {
+		return findElementSubstitutes(element);
+	}
+	return [];
+}
+	
 
 function resolveReferenceList(elements) {
 	console.log("------------ RESOLVE REFERENCES ------------")
@@ -167,23 +184,50 @@ function getElementReferenceData(element,key) {
 	}
 }
 
+function resolveExtensions(extension) {
+	const extensionReference = extension.getAttribute("base") || ""
+	if (extensionReference) {
+		const referenceData = getElementReferenceData(extension, "base");
+		const complexType = schemaNode.querySelector(`[name="${referenceData.name}"]`) || undefined;
+		return complexType;
+	} else {
+		return undefined;
+	}
+}
+
 function findElements(elements, elementName) {
+	const elementArray = [...elements]
 	if(elementName) {
 		elementName = elementName.toUpperCase();
 	}
 	console.log("FindElements")
-	console.log(elements)
+	console.log(elementArray)
 	console.log(elementName)
-	for (var i = 0; i < elements.length; i++) {
+	for (var i = 0; i < elementArray.length; i++) {
 		// we are looking for elements, so we don't need to process annotations and attributes
-		console.log(elements[i])
-		if (elements[i].tagName !== 'ANNOTATION' && elements[i].tagName !== 'ATTRIBUTE') {
+		console.log(elementArray[i])
+		if (elementArray[i].tagName !== 'ANNOTATION' && elementArray[i].tagName !== 'ATTRIBUTE') {
 			// if it is one of the nodes that do not have the info we need, skip it
 			// and process that node's child items
-			let currentElement = findReference(elements[i],schemaNode)
+			let currentElement = findReference(elementArray[i],schemaNode)
+
+			
+			const substitutesArray = resolveElementSubstitutes(currentElement);
+			console.log(substitutesArray);
+			for(let s = 0; s < substitutesArray.length; s++) {
+				elementArray.push(substitutesArray[s])
+			}
 			//elements[i] = findReference(elements[i],schemaNode)
 			console.log("After FindReference");
 			console.log(currentElement);
+			if(currentElement.tagName === 'EXTENSION') {
+				console.log("EXTENSION FOUND")
+				const extensionResult = resolveExtensions(currentElement);
+				if(extensionResult) {
+					console.log(extensionResult)
+					elementArray.push(extensionResult);
+				}
+			}
 			if (shouldSkipLevel(currentElement.tagName)) {
 				console.log("Skipping Level");
 				var child = findElements(currentElement.children, elementName);
@@ -199,7 +243,7 @@ function findElements(elements, elementName) {
 			// this bit little later
 			else if (!elementName) {
 				console.log("findElements Return 2");
-				const deferencedElements = resolveReferenceList(elements);
+				const deferencedElements = resolveReferenceList(elementArray);
 				console.log("DeReferencedElements:")
 				console.log(deferencedElements);
 				return deferencedElements;
@@ -211,9 +255,14 @@ function findElements(elements, elementName) {
 				console.log("Element ATtributes:")
 				console.log(elementAttributes);
 				console.log(elementName);
-				if(elementAttributes.name.toUpperCase() === elementName) {
-					console.log("findElements Return 3");
-					return currentElement;
+				try {
+					if(elementAttributes.name.toUpperCase() === elementName) {
+						console.log("findElements Return 3");
+						return currentElement;
+					}
+				} catch(exception) {
+					console.warn("Error getting name from element:")
+					console.log(currentElement)
 				}
 			} 
 		}
@@ -448,6 +497,7 @@ function getXmlCompletionProvider(monaco) {
             // find the last opened tag in the schema to see what elements/attributes it can have
 			var currentItem = schemaNode;
 			console.log("CPI 7.5")
+			console.log(openedTags);
 			for (var i = 0; i < openedTags.length; i++) {
 				console.log("CPI 7.6 - OpenedTags and CurrentItem")
 				console.log(openedTags[i])
