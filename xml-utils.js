@@ -824,11 +824,16 @@ async function fetchSchemas(filename) {
 
 }
 
-function compileSchemaDictionary() {
+async function compileSchemaDictionary() {
 	const urlDictionary = {
 		"sld": ["StyledLayerDescriptor.xsd"],
 		"ogc": ["expr.xsd","filter.xsd","filterAll.xsd","filterCapabilities.xsd","sort.xsd"]
 	}
+
+	urlDictionary['sld'] = await fetchSchemas(urlDictionary['sld'][0]);
+
+	for(let i = 0; i < urlDictionary["ogc"].length)
+
 
 	
 
