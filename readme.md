@@ -5,3 +5,6 @@ It serves as an excellent framework for writing your own completionItemProvider,
 
 # Development decisions:
 - 10.09.2026: on the assumption that no one would define two different XSD-Elements, which share the same name except for their capitalization, capitalization will be ignored when matching the XSD and the XML being edited. There are also issues with how the text is parsed into the DOM, which does ignore capitalization or sets the tagName variable as completely uppercase.
+
+
+- 09.10.2026: It is more reliable to have the files be added for each purpose rather than trying to rely on fetching each file from a source. In addition to simply having files chained together by include statements be combined into one file before hand rather than treated as individual documents.
