@@ -819,20 +819,21 @@ function unifySchemas() {
 }
 
 async function fetchSchemas(filename) {
-	const file = await fetch(`localhost:3000/${filename}`)
+	const file = await fetch(`http://localhost:3000/${filename}`)
 	return await file.text();
 
 }
 
 async function compileSchemaDictionary() {
-	const urlDictionary = {
-		"sld": ["StyledLayerDescriptor.xsd"],
-		"ogc": ["expr.xsd","filter.xsd","filterAll.xsd","filterCapabilities.xsd","sort.xsd"]
-	}
+	const ogcText = await fetchSchemas("ogc.xsd");
+	const sldText = await fetchSchemas("StyledLayerDescriptor.xsd");
 
-	urlDictionary['sld'] = await fetchSchemas(urlDictionary['sld'][0]);
+	const ogcDocument = stringToXml(ogcText,true);
+	const sldDocument = stringToXml(sldText,true);
 
-	for(let i = 0; i < urlDictionary["ogc"].length)
+	return {sld: sldDocument, ogc: ogcDocument};
+
+
 
 
 	
@@ -907,3 +908,9 @@ function stringToXml(text, airgap=false) {
 }
 
 var schemaNode = stringToXml(xmlSchemaString,true).children[0];
+
+var schemaDictionary = undefined;
+compileSchemaDictionary().then((result) => {
+	console.log(result);
+	schemaDictionary = result;
+});
