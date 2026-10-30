@@ -342,21 +342,32 @@ function findElements(elements, elementName) {
 }
 
 function findAttributes(elements) {
+	console.log("findAttributes");
+	console.log(elements)
 	var attrs = [];
 	for (var i = 0; i < elements.length; i++) {
 		// skip level if it is a 'complexType' tag
-		if (elements[i].tagName === 'complexType') {
+		if (shouldSkipLevel(elements[i].tagName)) {
+			console.log("skip Level")
+			console.log(elements[i])
 			var child = findAttributes(elements[i].children);
-			if (child) {
+			if (child.length > 0) {
+				console.log("findAttributes Child from")
+				console.log(elements[i])
+				console.log("child")
+				console.log(child)
+
 				return child;
 			}
 		}
 		// we need only those XSD elements that have a
 		// tag 'attribute'
-		else if (elements[i].tagName === 'attribute') {
+		else if (elements[i].tagName === 'ATTRIBUTE') {
 			attrs.push(elements[i]);
 		}
 	}
+	console.log("findAttributes Return attrs:")
+	console.log(attrs)
 	return attrs;
 }
 
@@ -404,6 +415,8 @@ function isItemAvailable(itemName, maxOccurs, items) {
 	// if it didn't appear yet, or it can appear again, then it
 	// is available, otherwise it't not
 	console.log("ITA R2")
+	console.log(count === 0)
+	console.log(parseInt(maxOccurs) > count)
 	return count === 0 || parseInt(maxOccurs) > count;
 }
 
@@ -466,10 +479,13 @@ function getAvailableElements(monaco, currentItem, usedItems) {
 		}
 	}
 	// return the suggestions we found
+	console.log(availableItems)
 	return availableItems;
 }
 
 function getAvailableAttribute(monaco, elements, usedChildTags) {
+	console.log("----------------------- GET AVAILABLE ATTRIBUTES -------------------------")
+	console.log(elements);
 	var availableItems = [];
 	var children;
 	for (var i = 0; i < elements.length; i++) {
@@ -483,8 +499,10 @@ function getAvailableAttribute(monaco, elements, usedChildTags) {
 	// if there are no attributes, then there are no
 	// suggestions available
 	if (!children) {
+		console.log("No Attributes to suggest")
 		return [];
 	}
+	console.log(children)
 	for (var i = 0; i < children.length; i++) {
 		// get all attributes for the element
 		var attrs = getElementAttributes(children[i]);
@@ -495,11 +513,14 @@ function getAvailableAttribute(monaco, elements, usedChildTags) {
 				label: attrs.name,
 				kind: monaco.languages.CompletionItemKind.Property,
 				detail: attrs.type || "string",
-				documentation: getItemDocumentation(children[i])
+				documentation: getItemDocumentation(children[i]),
+				insertText: `${attrs.name}=""`,
+				insertTextRules: 4		
 			});
 		}
 	}
 	// return the elements we found
+	console.log(availableItems);
 	return availableItems;
 }
 
@@ -533,6 +554,10 @@ function getXmlCompletionProvider(monaco) {
 				console.log("CPI 7 - LastOpenedTag")
 				console.log(lastOpenedTag)
 				// parse the content (not cleared text) into an xml document
+				console.log(textUntilPosition)
+				if(lastOpenedTag.isAttributeSearch) {
+					textUntilPosition = textUntilPosition + ">"
+				} 
 				var xmlDoc = stringToXml(textUntilPosition,true);
 				console.log("CPI 7.1")
 				var lastChild = xmlDoc.lastElementChild;
@@ -601,10 +626,15 @@ function getXmlCompletionProvider(monaco) {
 
             // return available elements/attributes if the tag exists in the schema, or an empty
             // array if it doesn't
+			console.log("CURRENT ITEM")
+			console.log(currentItem);
 			if (isAttributeSearch) {
 				console.log("CPI 7.9")
 				// get attributes completions
-				return currentItem ? getAvailableAttribute(monaco, currentItem.children, usedItems) : [];
+				const result = currentItem ? getAvailableAttribute(monaco, currentItem.children, usedItems) : [];
+				console.log("RESULT:")
+				console.log(result);
+				return { suggestions: result, incomplete: true };
 			}
 			else {
 				console.log("CPI 7.10 currentItem")
