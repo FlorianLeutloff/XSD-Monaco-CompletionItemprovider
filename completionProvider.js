@@ -483,11 +483,23 @@ function getAvailableElements(monaco, currentItem, usedItems) {
 	return availableItems;
 }
 
-function getAvailableAttribute(monaco, elements, usedChildTags) {
+function getAvailableAttribute(monaco, currentItem, usedChildTags) {
 	console.log("----------------------- GET AVAILABLE ATTRIBUTES -------------------------")
-	console.log(elements);
+	console.log(currentItem);
 	var availableItems = [];
 	var children;
+	const attributeNames = currentItem.getAttributeNames();
+	var elements = []
+	
+	if(attributeNames.includes('name') && attributeNames.includes('type') && currentItem.children.length === 0) {
+		elements = resolveNamedElementWithType(currentItem).children;
+	} else {
+		elements = currentItem.children;
+	}
+
+	console.log("ELEMENTS:")
+	console.log(elements);
+	console.log(currentItem);	
 	for (var i = 0; i < elements.length; i++) {
 		// annotation element only contains documentation,
 		// so no need to process it here
@@ -631,7 +643,7 @@ function getXmlCompletionProvider(monaco) {
 			if (isAttributeSearch) {
 				console.log("CPI 7.9")
 				// get attributes completions
-				const result = currentItem ? getAvailableAttribute(monaco, currentItem.children, usedItems) : [];
+				const result = currentItem ? getAvailableAttribute(monaco, currentItem, usedItems) : [];
 				console.log("RESULT:")
 				console.log(result);
 				return { suggestions: result };
