@@ -634,7 +634,7 @@ function getXmlCompletionProvider(monaco) {
 				const result = currentItem ? getAvailableAttribute(monaco, currentItem.children, usedItems) : [];
 				console.log("RESULT:")
 				console.log(result);
-				return { suggestions: result, incomplete: true };
+				return { suggestions: result };
 			}
 			else {
 				console.log("CPI 7.10 currentItem")
