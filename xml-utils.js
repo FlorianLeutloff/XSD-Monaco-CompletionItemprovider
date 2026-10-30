@@ -827,11 +827,14 @@ async function fetchSchemas(filename) {
 async function compileSchemaDictionary() {
 	const ogcText = await fetchSchemas("ogc.xsd");
 	const sldText = await fetchSchemas("StyledLayerDescriptor.xsd");
+	const gmlText = await fetchSchemas("gml.xsd");
 
-	const ogcDocument = stringToXml(ogcText,true);
-	const sldDocument = stringToXml(sldText,true);
+	//continue replacing the xsd prefix of each element
+	const ogcDocument = stringToXml(ogcText.replace(/xsd\:/g, ''),true).children[0];
+	const sldDocument = stringToXml(sldText.replace(/xsd\:/g, ''),true).children[0];
+	const gmlDocument = stringToXml(gmlText.replace(/xsd\:/g, ''),true).children[0];
 
-	return {sld: sldDocument, ogc: ogcDocument};
+	return {sld: sldDocument, ogc: ogcDocument, gml: gmlDocument};
 
 
 

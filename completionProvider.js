@@ -80,12 +80,15 @@ function findReference(element) {
 	if(attributeNames.includes("ref")) {
 		referenceData = getElementReferenceData(element,"ref");
 	}
+	
+	
 	if(attributeNames.includes("type") && !attributeNames.includes("name")) {
 		referenceData = getElementReferenceData(element,"type");
 	}
+
 	console.log(referenceData);
 	if(referenceData.name) {
-		const result = schemaNode.querySelector(`[name="${referenceData.name}"]`)
+		const result = searchElementFromReferenceData(referenceData);
 		if(result) {
 			console.log("returning found reference")
 			console.log(result);
@@ -96,7 +99,44 @@ function findReference(element) {
 	return element
 }
 
+function resolveNamedElementWithType(element) {
+	console.log("resolveNamedElementWithType:")
+	console.log(element)
+	const attributeNames = element.getAttributeNames();
+	if(attributeNames.includes("type") && attributeNames.includes("name")) {
+		try {	
+			const referenceData = getElementReferenceData(element,"type");
+			const complexType = searchElementFromReferenceData(referenceData);
+			console.log(complexType);
+			if(complexType) {
+				return complexType
+			}
+		} catch(exception) {
+			console.warn("Exception during resolveNamedElementWithType")
+		}
+	}
+	console.log("Returning original Element")
+	return element;
+
+}
+
+
+
+function searchElementFromReferenceData(referenceData) {
+	try {
+		const result = schemaDictionary[referenceData.ns].querySelector(`[name="${referenceData.name}"]`)
+		if(result) {
+			return result;
+		}			
+	} catch(exception) {
+		console.warn("Error during searchElementFromReferenceData: Probably due to an unknown namespace");
+	}
+	return undefined
+}
+
 function getNamespaceOfElement(element) {
+	console.log("getNamespaceOfelement");
+	console.log(element);
 	if(element.tagName === "SCHEMA") {
 		const attributes = element.getAttributeNames();
 		if(attributes.includes('targetnamespace')) {
@@ -126,7 +166,17 @@ function findElementSubstitutes(element) {
 }
 
 function findElementSubstitutesByName(fullRefName) {
-	const searchResults = schemaNode.querySelectorAll(`[substitutionGroup="${fullRefName}"]`);
+	const keys = Object.keys(schemaDictionary);
+	let searchResults = [];
+	for(const key of keys) {
+		try {
+			searchResults = [...searchResults,...schemaDictionary[key].querySelectorAll(`[substitutionGroup="${fullRefName}"]`)];
+		} catch(exception) {
+			console.warn("ERROR FIND SUBSTITUTION GROUP")
+			console.log(exception);
+		}
+	}
+	//searchResults = schemaNode.querySelectorAll(`[substitutionGroup="${fullRefName}"]`);
 	return searchResults;
 }
 
@@ -142,7 +192,7 @@ function resolveElementSubstitutes(element) {
 	}
 	return [];
 }
-	
+
 
 function resolveReferenceList(elements) {
 	console.log("------------ RESOLVE REFERENCES ------------")
@@ -160,9 +210,15 @@ function resolveReferenceList(elements) {
 			continue;
 		}
 		const element = findReference(elementsArray[i]);
+		console.log("FindElementSubstitutes:")
 		const substitutesArray = findElementSubstitutes(element);
+		console.log("Resulting Substitute Array")
+		console.log(substitutesArray);
 		for(let y = 0; y < substitutesArray.length; y++) {
-			elementsArray.push(substitutesArray[y]);
+			//avert duplicate entries due to substitutiongroups
+			if(!elementsArray.includes(substitutesArray[y])) {
+				elementsArray.push(substitutesArray[y]);
+			}
 		}
 		resultList.push(element);
 	}
@@ -183,8 +239,15 @@ function resolveExtensions(extension) {
 	const extensionReference = extension.getAttribute("base") || ""
 	if (extensionReference) {
 		const referenceData = getElementReferenceData(extension, "base");
-		const complexType = schemaNode.querySelector(`[name="${referenceData.name}"]`) || undefined;
-		return complexType;
+		try {
+			const complexType = schemaDictionary[referenceData.ns].querySelector(`[name="${referenceData.name}"]`) || undefined;
+			return complexType;
+		} catch(exception) {
+			console.warn("Resolve Extension Error: returning undefined")
+			return undefined;
+		}
+		//const complexType = schemaNode.querySelector(`[name="${referenceData.name}"]`) || undefined;
+		//return complexType;
 	} else {
 		return undefined;
 	}
@@ -204,7 +267,8 @@ function findElements(elements, elementName) {
 		if (elementArray[i].tagName !== 'ANNOTATION' && elementArray[i].tagName !== 'ATTRIBUTE') {
 			// if it is one of the nodes that do not have the info we need, skip it
 			// and process that node's child items
-			let currentElement = findReference(elementArray[i],schemaNode)
+			let currentElement = findReference(elementArray[i])
+			//currentElement = resolveNamedElementWithType(currentElement);
 
 
 			const substitutesArray = resolveElementSubstitutes(currentElement);
@@ -220,9 +284,25 @@ function findElements(elements, elementName) {
 					elementArray.push(extensionResult);
 				}
 			}
-			if (shouldSkipLevel(currentElement.tagName)) {
+			const currentElementAttributes = currentElement.getAttributeNames();
+			//const namedTypedElement = currentElementAttributes.includes("name") && currentElementAttributes.includes("type")
+			const skipLevel = shouldSkipLevel(currentElement.tagName)
+
+			
+			if (skipLevel) {
 				console.log("Skipping Level");
-				var child = findElements(currentElement.children, elementName);
+				var child = undefined
+				child = findElements(currentElement.children, elementName);
+
+				/*
+				if(namedTypedElement) {
+					const currentElementType = resolveNamedElementWithType(currentElement);
+					child = findElements(currentElementType.children, elementName);
+				} else {
+					child = findElements(currentElement.children, elementName);
+
+				}
+				*/
 				console.log("Skipping Level Child Result");
 				console.log(child);
 				// if child exists, return it
@@ -233,9 +313,14 @@ function findElements(elements, elementName) {
 			// if there is no elementName, return all elements (we'll explain
 			// this bit little later
 			else if (!elementName) {
+				console.log("BEFORE DEREFERNCING")
+				console.log(elementArray);
 				const deferencedElements = resolveReferenceList(elementArray);
 				console.log("DeReferencedElements:")
 				console.log(deferencedElements);
+				for(const element_iii of deferencedElements) {
+					console.log(element_iii)
+				}
 				return deferencedElements;
 			}
 			// find all the element attributes, and if it't name is the same
@@ -322,12 +407,27 @@ function isItemAvailable(itemName, maxOccurs, items) {
 	return count === 0 || parseInt(maxOccurs) > count;
 }
 
-function getAvailableElements(monaco, elements, usedItems) {
+function getAvailableElements(monaco, currentItem, usedItems) {
+	console.log("------------------- GET AVAILABLE ELEMENTS --------------------")
 	console.log("GetAvailableElements: Elements - usedItems ")
-	console.log(elements)
+	console.log(currentItem)
 	console.log(usedItems)
 	var availableItems = [];
 	var children;
+	const attributeNames = currentItem.getAttributeNames();
+	var elements = []
+	
+	if(attributeNames.includes('name') && attributeNames.includes('type') && currentItem.children.length === 0) {
+		elements = resolveNamedElementWithType(currentItem).children;
+	} else {
+		elements = currentItem.children;
+	}
+
+	console.log("ELEMENTS:")
+	console.log(elements);
+	console.log(currentItem);
+
+
 	for (var i = 0; i < elements.length; i++) {
 		// annotation element only contains documentation,
 		// so no need to process it here
@@ -481,7 +581,7 @@ function getXmlCompletionProvider(monaco) {
 				}
 			}
             // find the last opened tag in the schema to see what elements/attributes it can have
-			var currentItem = schemaNode;
+			var currentItem = schemaDictionary['sld'];
 			console.log("CPI 7.5")
 			console.log(openedTags);
 			for (var i = 0; i < openedTags.length; i++) {
@@ -490,7 +590,10 @@ function getXmlCompletionProvider(monaco) {
 				console.log(currentItem)
 				if (currentItem) {
 					console.log("CPI 7.7")
-					currentItem = findElements(currentItem.children, openedTags[i]);
+					const currentItemAttributes = currentItem.getAttributeNames();
+					const namedTypedElement = currentItemAttributes.includes("name") && currentItemAttributes.includes("type")
+					currentItem = findElements(namedTypedElement ? [resolveNamedElementWithType(currentItem)] : currentItem.children, openedTags[i]);
+					//currentItem = findElements(currentItem.children, openedTags[i]);
 					console.log("CPI 7.8 - currentItem Result")
 					console.log(currentItem)
 				}
@@ -507,7 +610,7 @@ function getXmlCompletionProvider(monaco) {
 				console.log("CPI 7.10 currentItem")
 				console.log(currentItem)
 				// get elements completions
-				const result = currentItem ? getAvailableElements(monaco, currentItem.children, usedItems) : [];
+				const result = currentItem ? getAvailableElements(monaco, currentItem, usedItems) : [];
 				console.log("RESULT:")
 				console.log(result);
 				return { suggestions: result };
