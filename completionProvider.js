@@ -253,7 +253,7 @@ function resolveExtensions(extension) {
 	}
 }
 
-function findElements(elements, elementName) {
+function findElements(elements, elementName, elementNameSpace) {
 	const elementArray = [...elements]
 	if(elementName) {
 		elementName = elementName.toUpperCase();
@@ -328,7 +328,9 @@ function findElements(elements, elementName) {
 			else {
 				const elementAttributes = getElementAttributes(currentElement);
 				try {
-					if(elementAttributes.name.toUpperCase() === elementName) {
+				const namespace = getNamespaceOfElement(currentElement)
+				const comparisonNmae = `${namespace}:${elementAttributes.name}`.toUpperCase()					
+					if(comparisonNmae === elementName) {
 						return currentElement;
 					}
 				} catch(exception) {
@@ -420,6 +422,7 @@ function isItemAvailable(itemName, maxOccurs, items) {
 	return count === 0 || parseInt(maxOccurs) > count;
 }
 
+
 function getAvailableElements(monaco, currentItem, usedItems) {
 	console.log("------------------- GET AVAILABLE ELEMENTS --------------------")
 	console.log("GetAvailableElements: Elements - usedItems ")
@@ -462,16 +465,23 @@ function getAvailableElements(monaco, currentItem, usedItems) {
 		console.log(elementAttrs);
 		// the element is a suggestion if it's available
 		if (isItemAvailable(elementAttrs.name, elementAttrs.maxoccurs, usedItems)) {
+			let elementName = ""
+			try{
+				const namespace = getNamespaceOfElement(children[i]);
+				elementName = `${namespace}:${elementAttrs.name}`
+			} catch {
+				elementName = elementAttrs.name;
+			}
 			// mark it as a 'field', and get the documentation
 
 			//if it has a name, therefore could be resolved to a reference somewhere else
 			if(elementAttrs.name) {
 				availableItems.push({
-					label: elementAttrs.name,
+					label: elementName,
 					kind: monaco.languages.CompletionItemKind.Field,
 					detail: elementAttrs.type,
 					documentation: getItemDocumentation(children[i]),
-					insertText: `${elementAttrs.name}>\n\t$0\n</${elementAttrs.name}`,
+					insertText: `${elementName}>\n\t$0\n</${elementName}`,
 					insertTextRules: 4
 				});
 			}
@@ -629,6 +639,7 @@ function getXmlCompletionProvider(monaco) {
 					console.log("CPI 7.7")
 					const currentItemAttributes = currentItem.getAttributeNames();
 					const namedTypedElement = currentItemAttributes.includes("name") && currentItemAttributes.includes("type")
+
 					currentItem = findElements(namedTypedElement ? [resolveNamedElementWithType(currentItem)] : currentItem.children, openedTags[i]);
 					//currentItem = findElements(currentItem.children, openedTags[i]);
 					console.log("CPI 7.8 - currentItem Result")

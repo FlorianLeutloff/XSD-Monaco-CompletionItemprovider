@@ -8,9 +8,9 @@ require(['vs/editor/editor.main'], function() {
 		suggestOnTriggerCharacters: true, // show suggestions when we type one of the trigger characters
 		value: `<?xml version="1.0" encoding="UTF-8"?>
 
-<StyledLayerDescriptor>
+<sld:StyledLayerDescriptor>
 
-</StyledLayerDescriptor>` 
+</sld:StyledLayerDescriptor>` 
 	});
   console.log(editor);
 
