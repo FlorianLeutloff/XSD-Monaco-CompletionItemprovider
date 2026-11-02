@@ -73,8 +73,6 @@ function shouldSkipLevel(tagName) {
 
 */
 function findReference(element) {
-	console.log("findReference:");
-	console.log(element);
 	const attributeNames = element.getAttributeNames();
 	let referenceData = {};
 	if(attributeNames.includes("ref")) {
@@ -86,28 +84,21 @@ function findReference(element) {
 		referenceData = getElementReferenceData(element,"type");
 	}
 
-	console.log(referenceData);
 	if(referenceData.name) {
 		const result = searchElementFromReferenceData(referenceData);
 		if(result) {
-			console.log("returning found reference")
-			console.log(result);
 			return result;
 		}
 	}
-	console.log("returning Original Element")
 	return element
 }
 
 function resolveNamedElementWithType(element) {
-	console.log("resolveNamedElementWithType:")
-	console.log(element)
 	const attributeNames = element.getAttributeNames();
 	if(attributeNames.includes("type") && attributeNames.includes("name")) {
 		try {	
 			const referenceData = getElementReferenceData(element,"type");
 			const complexType = searchElementFromReferenceData(referenceData);
-			console.log(complexType);
 			if(complexType) {
 				return complexType
 			}
@@ -115,7 +106,6 @@ function resolveNamedElementWithType(element) {
 			console.warn("Exception during resolveNamedElementWithType")
 		}
 	}
-	console.log("Returning original Element")
 	return element;
 
 }
@@ -135,8 +125,6 @@ function searchElementFromReferenceData(referenceData) {
 }
 
 function getNamespaceOfElement(element) {
-	console.log("getNamespaceOfelement");
-	console.log(element);
 	if(element.tagName === "SCHEMA") {
 		const attributes = element.getAttributeNames();
 		if(attributes.includes('targetnamespace')) {
@@ -272,7 +260,6 @@ function findElements(elements, elementName, elementNameSpace) {
 
 
 			const substitutesArray = resolveElementSubstitutes(currentElement);
-			console.log(substitutesArray);
 			for(let s = 0; s < substitutesArray.length; s++) {
 				elementArray.push(substitutesArray[s])
 			}
@@ -280,7 +267,6 @@ function findElements(elements, elementName, elementNameSpace) {
 			if(currentElement.tagName === 'EXTENSION') {
 				const extensionResult = resolveExtensions(currentElement);
 				if(extensionResult) {
-					console.log(extensionResult)
 					elementArray.push(extensionResult);
 				}
 			}
@@ -294,33 +280,13 @@ function findElements(elements, elementName, elementNameSpace) {
 				var child = undefined
 				child = findElements(currentElement.children, elementName);
 
-				/*
-				if(namedTypedElement) {
-					const currentElementType = resolveNamedElementWithType(currentElement);
-					child = findElements(currentElementType.children, elementName);
-				} else {
-					child = findElements(currentElement.children, elementName);
 
-				}
-				*/
-				console.log("Skipping Level Child Result");
-				console.log(child);
-				// if child exists, return it
 				if (child) {
 					return child;
 				}
 			}
-			// if there is no elementName, return all elements (we'll explain
-			// this bit little later
 			else if (!elementName) {
-				console.log("BEFORE DEREFERNCING")
-				console.log(elementArray);
 				const deferencedElements = resolveReferenceList(elementArray);
-				console.log("DeReferencedElements:")
-				console.log(deferencedElements);
-				for(const element_iii of deferencedElements) {
-					console.log(element_iii)
-				}
 				return deferencedElements;
 			}
 			// find all the element attributes, and if it't name is the same
@@ -340,7 +306,6 @@ function findElements(elements, elementName, elementNameSpace) {
 			} 
 		}
 	}
-	console.log("findElements Method End returning undefined");
 }
 
 function findAttributes(elements) {
@@ -350,15 +315,8 @@ function findAttributes(elements) {
 	for (var i = 0; i < elements.length; i++) {
 		// skip level if it is a 'complexType' tag
 		if (shouldSkipLevel(elements[i].tagName)) {
-			console.log("skip Level")
-			console.log(elements[i])
 			var child = findAttributes(elements[i].children);
 			if (child.length > 0) {
-				console.log("findAttributes Child from")
-				console.log(elements[i])
-				console.log("child")
-				console.log(child)
-
 				return child;
 			}
 		}
@@ -368,8 +326,6 @@ function findAttributes(elements) {
 			attrs.push(elements[i]);
 		}
 	}
-	console.log("findAttributes Return attrs:")
-	console.log(attrs)
 	return attrs;
 }
 
@@ -378,9 +334,6 @@ function getElementAttributes(element) {
 	for (var i = 0; i < element.attributes.length; i++) {
 		attrs[element.attributes[i].name] = element.attributes[i].value;
 	}
-	// return all attributes as an object
-	//console.log("getElementAttributes")
-	//console.log(attrs)
 	return attrs;
 }
 
@@ -404,7 +357,6 @@ function isItemAvailable(itemName, maxOccurs, items) {
 	maxOccurs = maxOccurs || '1';
 	// the element can appere infinite times, so it is availabel
 	if (maxOccurs && maxOccurs === 'unbounded') {
-		console.log("ITA R1")
 		return true;
 	}
 	// count how many times the element appered
@@ -416,9 +368,6 @@ function isItemAvailable(itemName, maxOccurs, items) {
 	}
 	// if it didn't appear yet, or it can appear again, then it
 	// is available, otherwise it't not
-	console.log("ITA R2")
-	console.log(count === 0)
-	console.log(parseInt(maxOccurs) > count)
 	return count === 0 || parseInt(maxOccurs) > count;
 }
 
@@ -441,8 +390,6 @@ function getAvailableElements(monaco, currentItem, usedItems) {
 
 	console.log("ELEMENTS:")
 	console.log(elements);
-	console.log(currentItem);
-
 
 	for (var i = 0; i < elements.length; i++) {
 		// annotation element only contains documentation,
@@ -456,13 +403,9 @@ function getAvailableElements(monaco, currentItem, usedItems) {
 	if (!children) {
 		return [];
 	}
-	console.log("ForLoop")
 	for (var i = 0; i < children.length; i++) {
-		console.log(i);
-		console.log(children[i]);
 		// get all element attributes
 		let elementAttrs = getElementAttributes(children[i]);
-		console.log(elementAttrs);
 		// the element is a suggestion if it's available
 		if (isItemAvailable(elementAttrs.name, elementAttrs.maxoccurs, usedItems)) {
 			let elementName = ""
@@ -489,7 +432,6 @@ function getAvailableElements(monaco, currentItem, usedItems) {
 		}
 	}
 	// return the suggestions we found
-	console.log(availableItems)
 	return availableItems;
 }
 
@@ -524,7 +466,6 @@ function getAvailableAttribute(monaco, currentItem, usedChildTags) {
 		console.log("No Attributes to suggest")
 		return [];
 	}
-	console.log(children)
 	for (var i = 0; i < children.length; i++) {
 		// get all attributes for the element
 		var attrs = getElementAttributes(children[i]);
@@ -542,7 +483,6 @@ function getAvailableAttribute(monaco, currentItem, usedChildTags) {
 		}
 	}
 	// return the elements we found
-	console.log(availableItems);
 	return availableItems;
 }
 
@@ -550,124 +490,78 @@ function getXmlCompletionProvider(monaco) {
 	return {
 		triggerCharacters: ['<'],
 		provideCompletionItems: function(model, position) {
-			console.log("CPI 1")
             // get editor content before the pointer
 			var textUntilPosition = model.getValueInRange({startLineNumber: 1, startColumn: 1, endLineNumber: position.lineNumber, endColumn: position.column});
-			console.log("CPI 2")
             // get content info - are we inside of the area where we don't want suggestions, what is the content without those areas
 			var areaUntilPositionInfo = getAreaInfo(textUntilPosition); // isCompletionAvailable, clearedText
-			console.log("CPI 3")
             // if we don't want any suggestions, return empty array
 			if (!areaUntilPositionInfo.isCompletionAvailable) {
 				return [];
 			}
-			console.log("CPI 4")
             // if we want suggestions, inside of which tag are we?
 			var lastOpenedTag = getLastOpenedTag(areaUntilPositionInfo.clearedText);
-			console.log("CPI 5")
             // get opened tags to see what tag we should look for in the XSD schema
 			var openedTags = [];
             // get the elements/attributes that are already mentioned in the element we're in
 			var usedItems = [];
 			var isAttributeSearch = lastOpenedTag && lastOpenedTag.isAttributeSearch;
-			console.log("CPI 6")
 			// no need to calculate the position in the XSD schema if we are in the root element
 			if (lastOpenedTag) {
-				console.log("CPI 7 - LastOpenedTag")
-				console.log(lastOpenedTag)
 				// parse the content (not cleared text) into an xml document
-				console.log(textUntilPosition)
 				if(lastOpenedTag.isAttributeSearch) {
 					textUntilPosition = textUntilPosition + ">"
 				} 
 				var xmlDoc = stringToXml(textUntilPosition,true);
-				console.log("CPI 7.1")
 				var lastChild = xmlDoc.lastElementChild;
-				console.log("CPI 7.2")
 				while (lastChild) {
-					console.log("CPI 7.3 - LastChild")
-					console.log(lastChild);
 					openedTags.push(lastChild.tagName);
-					console.log("CPI 7.3.1")
 					// if we found our last opened tag
-					console.log(lastChild.tagName)
-					console.log(lastOpenedTag.tagName)
 					if (lastChild.tagName === lastOpenedTag.tagName) {
-						console.log("CPI 7.3.2")
 						// if we are looking for attributes, then used items should
 						// be the attributes we already used
 						if (lastOpenedTag.isAttributeSearch) {
-							console.log("CPI 7.3.2.3")
 							var attrs = lastChild.attributes;
-							console.log("CPI 7.3.2.3.1")
 							for (var i = 0; i< attrs.length; i++) {
-								console.log("CPI 7.3.2.3.2")
 								usedItems.push(attrs[i].nodeName);
 							}
 						}
 						else {
-							console.log("CPI 7.3.2.4")
-							console.log(lastChild)
 							// if we are looking for child elements, then used items
 							// should be the elements that were already used
 							var children = lastChild.children;
-							console.log("CPI 7.3.2.4.1")
 							for (var i = 0; i < children.length; i++) {
-								console.log("CPI 7.3.2.4.2")
 								usedItems.push(children[i].tagName);
 							}
 						}
-						console.log("CPI 7.3.3")
-						console.log(usedItems);
 						break;
 					}
 					// we haven't found the last opened tag yet, so we move to
 					// the next element
 					lastChild = lastChild.lastElementChild;
-					console.log("CPI 7.4")
 				}
 			}
             // find the last opened tag in the schema to see what elements/attributes it can have
 			var currentItem = schemaDictionary['sld'];
-			console.log("CPI 7.5")
-			console.log(openedTags);
 			for (var i = 0; i < openedTags.length; i++) {
-				console.log("CPI 7.6 - OpenedTags and CurrentItem")
-				console.log(openedTags[i])
-				console.log(currentItem)
 				if (currentItem) {
-					console.log("CPI 7.7")
 					const currentItemAttributes = currentItem.getAttributeNames();
 					const namedTypedElement = currentItemAttributes.includes("name") && currentItemAttributes.includes("type")
 
 					currentItem = findElements(namedTypedElement ? [resolveNamedElementWithType(currentItem)] : currentItem.children, openedTags[i]);
-					//currentItem = findElements(currentItem.children, openedTags[i]);
-					console.log("CPI 7.8 - currentItem Result")
-					console.log(currentItem)
 				}
 			}
 
             // return available elements/attributes if the tag exists in the schema, or an empty
             // array if it doesn't
-			console.log("CURRENT ITEM")
-			console.log(currentItem);
 			if (isAttributeSearch) {
-				console.log("CPI 7.9")
 				// get attributes completions
 				const result = currentItem ? getAvailableAttribute(monaco, currentItem, usedItems) : [];
-				console.log("RESULT:")
-				console.log(result);
 				return { suggestions: result };
 			}
 			else {
-				console.log("CPI 7.10 currentItem")
-				console.log(currentItem)
 				// get elements completions
 				const result = currentItem ? getAvailableElements(monaco, currentItem, usedItems) : [];
-				console.log("RESULT:")
-				console.log(result);
 				return { suggestions: result };
-				//return currentItem ? getAvailableElements(monaco, currentItem.children, usedItems) : [];
 			}
 		}
 	}
